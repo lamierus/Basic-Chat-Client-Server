@@ -2,6 +2,9 @@
 using System.Text;
 using System.Net;
 using System.Net.Sockets;
+using System.Net.NetworkInformation;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,27 +20,12 @@ namespace Basic_Console_Server {
                 // Start Listeneting at the specified port
                 listener.Start();
 
-                Console.WriteLine("Server running - Port: 8000");
+                Console.WriteLine("Server running - IP: " +
+                    GetAllLocalIPv4(NetworkInterfaceType.Wireless80211).FirstOrDefault()
+                    + " Port: 8000");
                 Console.WriteLine("Local end point:" + listener.LocalEndpoint);
                 Console.WriteLine("Waiting for connections...");
-
-                /*Socket sock = Listener.AcceptSocket();
-                // When accepted
-                Console.WriteLine("Connection accepted from " + sock.RemoteEndPoint);
-
-                byte[] b = new byte[100];
-                int k = sock.Receive(b);
-                Console.WriteLine("Recieved...");
-
-                for (int i = 0; i < k; i++) {
-                    Console.Write(Convert.ToChar(b[i]));
-                }
-
-                ASCIIEncoding asen = new ASCIIEncoding();
-                sock.Send(asen.GetBytes("Automatic message: " + "String received by server!"));
-                Console.WriteLine(Environment.NewLine + Environment.NewLine + "Automatic message sent!");
-
-                sock.Close();*/
+                
                 listener.BeginAcceptTcpClient(ClientThread, listener);
                 do {
                     string input = Console.ReadLine();
@@ -78,6 +66,20 @@ namespace Basic_Console_Server {
             ns.Flush();
             ns.Close();
             client.Close();
+        }
+
+        static private string[] GetAllLocalIPv4(NetworkInterfaceType _type) {
+            List<string> ipAddrList = new List<string>();
+            foreach (NetworkInterface item in NetworkInterface.GetAllNetworkInterfaces()) {
+                if (item.NetworkInterfaceType == _type && item.OperationalStatus == OperationalStatus.Up) {
+                    foreach (UnicastIPAddressInformation ip in item.GetIPProperties().UnicastAddresses) {
+                        if (ip.Address.AddressFamily == AddressFamily.InterNetwork) {
+                            ipAddrList.Add(ip.Address.ToString());
+                        }
+                    }
+                }
+            }
+            return ipAddrList.ToArray();
         }
     }
 }
