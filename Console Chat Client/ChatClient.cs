@@ -7,12 +7,15 @@ using System.Net.Sockets;
 namespace Basic_Console_Client {
     class Program {
         static void Main(string[] args) {
+            Console.Write("Please enter the IP of the server: ");
+            string ipAddress = Console.ReadLine();
             try {
                 TcpClient tcpclnt = new TcpClient();
                 for (int i = 0; i < 10; i++) {
                     Console.WriteLine("Connecting.....");
                     try {
-                        tcpclnt.Connect(IPAddress.Loopback, 8000);
+                        //tcpclnt.Connect(IPAddress.Loopback, 8000);
+                        tcpclnt.Connect(IPAddress.Parse(ipAddress), 8000);
                         // Use the ipaddress as in the server program
                     } catch (Exception e) {
                         Console.WriteLine(e.Message);
