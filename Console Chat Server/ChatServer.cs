@@ -51,8 +51,8 @@ namespace Basic_Console_Server {
             byte[] b = new byte[100];
             int k;
             NetworkStream ns = client.GetStream();
+            k = ns.Read(b, 0, 100);
             while (chatMessage != "/quit") {
-                k = ns.Read(b, 0, 100);
                 Console.WriteLine("Recieved...");
                 for (int i = 0; i < k; i++) {
                     chatMessage += Convert.ToChar(b[i]);
@@ -62,8 +62,9 @@ namespace Basic_Console_Server {
                 // Test reply
                 Byte[] replyData = Encoding.ASCII.GetBytes(DateTime.Now.ToString() + Environment.NewLine);
                 ns.Write(replyData, 0, replyData.Length);
+                ns.Flush();
+                k = ns.Read(b, 0, 100);
             } 
-            ns.Flush();
             ns.Close();
             client.Close();
         }
