@@ -13,7 +13,7 @@ namespace Basic_Console_Server {
         //static private TcpListener Listener;
         static void Main(string[] args) {
             try {
-                bool quit = false;
+                //bool quit = false;
                 // Initializes the Listener
                 TcpListener listener = new TcpListener(IPAddress.Any, 8000);
 
@@ -27,13 +27,16 @@ namespace Basic_Console_Server {
                 Console.WriteLine("Waiting for connections...");
                 
                 listener.BeginAcceptTcpClient(ClientThread, listener);
+
                 do {
                     string input = Console.ReadLine();
                     if (input == "/quit") {
-                        quit = true;
+                        break;
                     }
-                } while (!quit);
-
+                } while (true);
+                if (listener.Pending()) {
+                    listener.EndAcceptTcpClient();
+                }
                 listener.Stop();
             } catch (Exception e) {
                 Console.WriteLine("Error:" + Environment.NewLine + e.StackTrace);
@@ -51,8 +54,14 @@ namespace Basic_Console_Server {
             byte[] b = new byte[100];
             int k;
             NetworkStream ns = client.GetStream();
-            k = ns.Read(b, 0, 100);
-            while (chatMessage != "/quit") {
+
+            do {
+                try {
+                    k = ns.Read(b, 0, 100);
+                } catch (Exception e) {
+                    Console.WriteLine(e.Message);
+                    break;
+                }
                 Console.WriteLine("Recieved...");
                 for (int i = 0; i < k; i++) {
                     chatMessage += Convert.ToChar(b[i]);
@@ -63,8 +72,8 @@ namespace Basic_Console_Server {
                 Byte[] replyData = Encoding.ASCII.GetBytes(DateTime.Now.ToString() + Environment.NewLine);
                 ns.Write(replyData, 0, replyData.Length);
                 ns.Flush();
-                k = ns.Read(b, 0, 100);
-            } 
+            } while (chatMessage != "/quit") ;
+
             ns.Close();
             client.Close();
         }
